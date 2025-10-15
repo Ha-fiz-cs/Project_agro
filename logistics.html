@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agro Link • Logistics</title>
+    <style>
+        :root { --bg:#0f172a; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb; --accent:#22c55e; --accent-2:#06b6d4; }
+        * { box-sizing: border-box; }
+        body { margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background: linear-gradient(135deg, #0b1220, #0f172a 60%, #0b1220); color: var(--text); }
+        header { position: sticky; top:0; backdrop-filter: blur(8px); background: rgba(2,6,23,.6); border-bottom: 1px solid rgba(148,163,184,.15); z-index: 10; }
+        .nav { display:flex; align-items:center; justify-content:space-between; max-width:1200px; margin:0 auto; padding:14px 20px; }
+        .brand { display:flex; gap:10px; align-items:center; font-weight:700; }
+        .brand .logo { width:34px; height:34px; border-radius:10px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); display:grid; place-items:center; color:#041b11; font-weight:900; }
+        .links { display:flex; gap:10px; flex-wrap: wrap; }
+        .link { color: var(--text); text-decoration:none; border:1px solid rgba(148,163,184,.18); padding:8px 12px; border-radius:10px; background: rgba(17,24,39,.6); font-size:14px; }
+        .link.active { background: linear-gradient(180deg, rgba(34,197,94,.15), rgba(6,182,212,.12)); border-color: rgba(34,197,94,.35); }
+        main { max-width:1200px; margin: 20px auto; padding: 0 20px 40px; display:grid; gap:16px; }
+        .panel { background: radial-gradient(1000px 600px at 100% -10%, rgba(34,197,94,.06), transparent 60%), radial-gradient(1000px 600px at -10% 120%, rgba(6,182,212,.06), transparent 60%), rgba(2,6,23,.5); border:1px solid rgba(148,163,184,.15); border-radius:16px; padding:16px; }
+        .row { display:flex; gap:10px; flex-wrap:wrap; }
+        .two { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+        .three { display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; }
+        .kv { display:grid; gap:6px; }
+        label { font-size:13px; color:#94a3b8; }
+        input, select, button { font: inherit; }
+        input[type="number"], select { width:100%; background: rgba(3,7,18,.7); border:1px solid rgba(148,163,184,.18); color:var(--text); padding:10px 12px; border-radius:10px; }
+        .btn { border:1px solid rgba(148,163,184,.25); background: linear-gradient(180deg, rgba(34,197,94,.2), rgba(6,182,212,.15)); color: var(--text); padding:10px 14px; border-radius:10px; cursor:pointer; }
+        .btn.secondary { background: rgba(17,24,39,.6); }
+        .btn.danger { background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.35); }
+        .card { border:1px solid rgba(148,163,184,.15); background: rgba(2,6,23,.6); border-radius:12px; padding:12px; display:grid; gap:8px; }
+        .list { display:grid; gap:10px; }
+        .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size:12px; color: #a7f3d0; }
+        .notice { background: rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.35); color:#b6f2cf; padding:10px; border-radius:10px; font-size:13px; }
+        .warn { background: rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.35); color:#fde68a; padding:10px; border-radius:10px; font-size:13px; }
+        @media (max-width: 920px) { .two, .three { grid-template-columns: 1fr; } }
+    </style>
+    <script>
+        const $ = (q) => document.querySelector(q);
+        const db = {
+            farmers: JSON.parse(localStorage.getItem('agro_farmers')||'[]'),
+            consumers: JSON.parse(localStorage.getItem('agro_consumers')||'[]'),
+            matches: JSON.parse(localStorage.getItem('agro_matches')||'[]'),
+        };
+        function persist(){
+            localStorage.setItem('agro_matches', JSON.stringify(db.matches));
+        }
+        function toast(text){
+            const t = document.createElement('div'); t.className='notice'; t.textContent=text; t.style.position='fixed'; t.style.right='16px'; t.style.bottom='16px'; t.style.maxWidth='360px'; t.style.zIndex='100';
+            document.body.appendChild(t); setTimeout(()=>{ t.remove(); }, 2500);
+        }
+        function renderMatches(){
+            const list = $('#m-list'); list.innerHTML='';
+            const items = db.matches.slice().reverse();
+            items.forEach(m=>{
+                const lot = db.farmers.find(x=>x.id===m.lotId) || {}; const req = db.consumers.find(x=>x.id===m.reqId) || {};
+                const card = document.createElement('div'); card.className='card'; card.dataset.id=m.id;
+                card.innerHTML = `
+                    <div class="row" style="justify-content:space-between; align-items:center;">
+                        <div><strong>${lot.product||'Lot'}</strong> <span class="chip">${lot.category||''}</span> <span class="chip">Status: ${m.status}</span></div>
+                        <div class="mono">Lot: ${lot.weight||'?'}kg @₹${lot.price||'?'} / Req: ${req.qty||'?'}kg @₹${req.price||'?'} • Hold ₹${m.escrow?.hold||0}</div>
+                    </div>
+                `;
+                card.addEventListener('click', ()=>selectMatch(m.id));
+                list.appendChild(card);
+            });
+            if (items.length===0) list.innerHTML='<div class="warn">No matches yet. Add farmer listings and consumer requests.</div>';
+        }
+        function computeSettlement(m){
+            const lot = db.farmers.find(x=>x.id===m.lotId) || {}; const req = db.consumers.find(x=>x.id===m.reqId) || {};
+            const w = parseFloat($('#lg-w').value||'0');
+            const price = parseFloat($('#st-price').value||String(lot.price||0));
+            const commPct = parseFloat($('#st-comm').value||'0');
+            let logi = parseFloat($('#st-logi').value||'0');
+            const mode = ($('#lg-mode').value||'Road');
+            if (!$('#st-logi').dataset.manual) {
+                const factor = mode==='Air' ? 3.5 : mode==='Rail' ? 1.5 : mode==='Sea' ? 2.0 : 1.0;
+                logi = Math.round(w * 0.8 * factor);
+                $('#st-logi').value = String(logi);
+            }
+            $('#st-logi').addEventListener('input', ()=>{ $('#st-logi').dataset.manual = '1'; }, { once:true });
+            const gross = w * price;
+            const commission = gross * (commPct/100);
+            const escrowApplied = m.escrow.hold || 0;
+            const farmerPayout = Math.max(0, gross - commission);
+            const consumerTotal = Math.max(0, gross + logi - escrowApplied);
+            const out = $('#st-out');
+            out.innerHTML = `
+                <div class="mono">Gross: ₹${gross.toFixed(2)} • Commission: ₹${commission.toFixed(2)} • Logistics: ₹${logi.toFixed(2)} • Escrow: -₹${escrowApplied.toFixed(2)}</div>
+                <div class="mono">Farmer payout: ₹${farmerPayout.toFixed(2)} • Consumer total: ₹${consumerTotal.toFixed(2)}</div>
+            `;
+            m.settlement = { weight:w, pricePerKg:price, commissionPct:commPct, logisticsFee:logi, gross, commission, farmerPayout, consumerTotal };
+            persist();
+        }
+        function selectMatch(id){
+            const m = db.matches.find(x=>x.id===id); if(!m) return;
+            const lot = db.farmers.find(x=>x.id===m.lotId) || {}; const req = db.consumers.find(x=>x.id===m.reqId) || {};
+            const el = $('#m-detail');
+            el.innerHTML = `
+                <div class="list">
+                    <div class="card">
+                        <div class="row" style="justify-content:space-between; align-items:center;">
+                            <div><strong>${lot.product}</strong> <span class="chip">${lot.category}</span></div>
+                            <div class="mono">Status: ${m.status}</div>
+                        </div>
+                        <div class="muted">Farmer: ${lot.location}</div>
+                        <div class="muted">Consumer: ${req.location}</div>
+                        <div class="row">${(lot.tags||[]).map(t=>`<span class='chip'>${t}</span>`).join(' ')}</div>
+                        <div class="three">
+                            <div class="kv"><label>Measured Weight (kg)</label><input id="lg-w" type="number" min="0" step="0.1" value="${Math.min(lot.weight||0, req.qty||0)}"></div>
+                            <div class="kv"><label>Quality Grade</label>
+                                <select id="lg-q">
+                                    <option ${lot.tags?.includes('Grade A')?'selected':''}>Grade A</option>
+                                    <option ${lot.tags?.includes('Grade B')&&!lot.tags?.includes('Grade A')?'selected':''}>Grade B</option>
+                                    <option>Grade C</option>
+                                </select>
+                            </div>
+                            <div class="kv"><label>Delivery Mode</label>
+                                <select id="lg-mode">
+                                    <option>Road</option>
+                                    <option>Rail</option>
+                                    <option>Air</option>
+                                    <option>Sea</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="three" style="margin-top:8px;">
+                            <div class="kv"><label>Final Price per kg (₹)</label><input id="st-price" type="number" min="0" step="0.1" value="${lot.price||0}"></div>
+                            <div class="kv"><label>Commission %</label><input id="st-comm" type="number" min="0" step="0.1" value="1.5"></div>
+                            <div class="kv"><label>Logistics Fee (₹)</label><input id="st-logi" type="number" min="0" step="1" value="0"></div>
+                        </div>
+                        <div id="st-out" class="card" style="background: rgba(34,197,94,.06); border-color: rgba(34,197,94,.25);">
+                            <div class="mono">Gross: — • Commission: — • Logistics: — • Escrow: —</div>
+                            <div class="mono">Farmer payout: — • Consumer total: —</div>
+                        </div>
+                        <div class="row" style="margin-top:8px;">
+                            <button class="btn" id="lg-confirm">Confirm & Dispatch</button>
+                            <button class="btn secondary" id="lg-fail">Fail QA</button>
+                            <button class="btn danger" id="lg-cancel">Cancel Match</button>
+                            <button class="btn" id="st-settle">Settle Transaction</button>
+                        </div>
+                        <div class="muted">Escrow hold: ₹${m.escrow.hold} • Refunded: ${m.escrow.refunded? 'Yes':'No'}</div>
+                    </div>
+                </div>
+            `;
+            const recompute = ()=> computeSettlement(m);
+            ['#lg-w','#st-price','#st-comm','#st-logi','#lg-mode'].forEach(sel=>{ const input = $(sel); if(input) input.addEventListener('input', recompute); });
+            computeSettlement(m);
+            $('#lg-confirm').addEventListener('click', ()=>{ updateMatch(id, 'dispatched', true); });
+            $('#lg-fail').addEventListener('click', ()=>{ updateMatch(id, 'failed-qa', true, true); });
+            $('#lg-cancel').addEventListener('click', ()=>{ updateMatch(id, 'cancelled', true, true); });
+            $('#st-settle').addEventListener('click', ()=> settleMatch(id));
+        }
+        function updateMatch(id, status, refund=false, releaseHold=false){
+            const m = db.matches.find(x=>x.id===id); if(!m) return;
+            m.status = status;
+            if (refund) m.escrow.refunded = true;
+            if (releaseHold) m.escrow.hold = 0;
+            m.timeline.push({ t:Date.now(), e:status });
+            persist();
+            renderMatches();
+            selectMatch(id);
+            toast(`Match ${status}.`);
+        }
+        function settleMatch(id){
+            const m = db.matches.find(x=>x.id===id); if(!m) return;
+            if (!m.settlement) computeSettlement(m);
+            m.status = 'settled';
+            m.escrow.refunded = true;
+            m.escrow.hold = 0;
+            m.timeline.push({ t:Date.now(), e:'settled' });
+            persist();
+            renderMatches();
+            selectMatch(id);
+            toast('Settlement completed. Escrow refunded.');
+        }
+        window.addEventListener('DOMContentLoaded', ()=>{ renderMatches(); });
+    </script>
+</head>
+<body>
+    <header>
+        <div class="nav">
+            <div class="brand"><div class="logo">Ag</div><div>Agro Link</div></div>
+            <nav class="links">
+                <a class="link" href="farmer.html">Farmer</a>
+                <a class="link" href="consumer.html">Consumer</a>
+                <a class="link active" href="logistics.html">Logistics</a>
+                <a class="link" href="analytics.html">Market & Pricing</a>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <section class="panel">
+            <h2>Logistics & Escrow</h2>
+            <p class="muted">Inspect lots, confirm weights, compute settlements, and complete escrow refunds.</p>
+            <div class="two">
+                <div class="card">
+                    <h3 style="margin:0 0 6px;">Matches</h3>
+                    <div id="m-list" class="list"></div>
+                </div>
+                <div class="card">
+                    <h3 style="margin:0 0 6px;">Actions</h3>
+                    <div id="m-detail">Select a match to proceed.</div>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

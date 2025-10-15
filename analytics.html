@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agro Link • Market & Pricing</title>
+    <style>
+        :root { 
+            --bg:#0f172a; 
+            --panel:#111827; 
+            --muted:#94a3b8; 
+            --text:#e5e7eb; 
+            --accent:#22c55e; /* Green (Up/Good) */
+            --accent-2:#06b6d4; /* Cyan (Neutral/Analysis) */
+            --warn:#f59e0b; /* Orange (Down/Caution) */
+            --glow-light: rgba(34, 197, 94, 0.2);
+            --trans-duration: 0.25s;
+        }
+        * { box-sizing: border-box; }
+        body { 
+            margin:0; 
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; 
+            background: linear-gradient(135deg, #0b1220, #0f172a 60%, #0b1220); 
+            color: var(--text); 
+        }
+        /* --- General Layout and Components (Unchanged) --- */
+        header { 
+            position: sticky; top:0; backdrop-filter: blur(8px); 
+            background: rgba(2,6,23,.7); border-bottom: 1px solid rgba(148,163,184,.15); 
+            z-index: 10; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+        .nav { display:flex; align-items:center; justify-content:space-between; max-width:1200px; margin:0 auto; padding:14px 20px; }
+        .brand { display:flex; gap:10px; align-items:center; font-weight:700; }
+        .brand .logo { 
+            width:34px; height:34px; border-radius:10px; 
+            background: linear-gradient(135deg, var(--accent), var(--accent-2)); 
+            display:grid; place-items:center; color:#041b11; font-weight:900;
+            transition: transform var(--trans-duration);
+        }
+        .brand .logo:hover { transform: rotate(5deg) scale(1.05); }
+        .links { display:flex; gap:10px; flex-wrap: wrap; }
+        .link { 
+            color: var(--text); text-decoration:none; border:1px solid rgba(148,163,184,.18); 
+            padding:8px 12px; border-radius:10px; background: rgba(17,24,39,.6); 
+            font-size:14px; transition: all var(--trans-duration);
+        }
+        .link:hover {
+            background: rgba(6, 182, 212, 0.1); border-color: var(--accent-2);
+            transform: translateY(-2px); box-shadow: 0 4px 10px rgba(6, 182, 212, 0.4);
+        }
+        .link.active { 
+            background: linear-gradient(180deg, rgba(34,197,94,.15), rgba(6,182,212,.12)); 
+            border-color: rgba(34,197,94,.35); 
+        }
+        main { max-width:1200px; margin: 20px auto; padding: 0 20px 40px; display:grid; gap:16px; }
+        .panel { 
+            background: radial-gradient(1000px 600px at 100% -10%, rgba(34,197,94,.06), transparent 60%), radial-gradient(1000px 600px at -10% 120%, rgba(6,182,212,.06), transparent 60%), rgba(2,6,23,.5); 
+            border:1px solid rgba(148,163,184,.15); border-radius:16px; padding:16px; 
+        }
+        .row { display:flex; gap:10px; flex-wrap:wrap; }
+        .two { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+        .kv { display:grid; gap:6px; }
+        label { font-size:13px; color:#94a3b8; }
+        input, button { font: inherit; }
+        input[type="text"], input[type="number"] { 
+            width:100%; background: rgba(3,7,18,.7); border:1px solid rgba(148,163,184,.18); 
+            color:var(--text); padding:10px 12px; border-radius:10px;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        input:focus {
+            border-color: var(--accent-2); box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.3); outline: none;
+        }
+        .btn { 
+            border:1px solid rgba(148,163,184,.25); background: linear-gradient(180deg, rgba(34,197,94,.2), rgba(6,182,212,.15)); 
+            color: var(--text); padding:10px 14px; border-radius:10px; cursor:pointer;
+            transition: all var(--trans-duration);
+        }
+        .btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 3px 10px var(--glow-light); }
+
+        .card { 
+            border:1px solid rgba(148,163,184,.15); background: rgba(2,6,23,.6); 
+            border-radius:12px; padding:12px; display:grid; gap:8px; 
+            transition: box-shadow var(--trans-duration), border-color var(--trans-duration), transform var(--trans-duration);
+        }
+        .card:hover { border-color: var(--accent-2); box-shadow: 0 5px 20px rgba(6, 182, 212, 0.3); transform: translateY(-2px); }
+        
+        .list { display:grid; gap:10px; }
+        .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size:12px; color: #a7f3d0; }
+        .muted { color: var(--muted); font-size: 13px; }
+        .chip { display:inline-flex; align-items:center; gap:6px; border:1px solid rgba(148,163,184,.25); border-radius:999px; padding:6px 10px; color:#94a3b8; font-size:12px; background: rgba(2,6,23,.6); }
+        @media (max-width: 920px) { .two, .three { grid-template-columns: 1fr; } }
+
+        /* --- Graph Enhancements --- */
+        .chart-container {
+            position: relative;
+            height: 250px;
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 10px 10px 25px 20px; /* Space for axis labels */
+        }
+        .chart-svg {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            width: calc(100% - 30px);
+            height: calc(100% - 30px);
+        }
+        .chart-axis-label {
+            position: absolute;
+            color: var(--muted);
+            font-size: 10px;
+        }
+        .chart-axis-label.y-high { top: 5px; left: 0px; }
+        .chart-axis-label.y-low { bottom: 25px; left: 0px; }
+        .chart-axis-label.x-start { bottom: 5px; left: 20px; }
+        .chart-axis-label.x-end { bottom: 5px; right: 10px; }
+        
+        .chart-trend {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .trend-up { color: var(--accent); }
+        .trend-down { color: var(--warn); }
+        .trend-neutral { color: var(--accent-2); }
+
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav">
+            <div class="brand">
+                <div class="logo">Ag</div>
+                <div>Agro Link</div>
+            </div>
+            <nav class="links">
+                <a class="link" href="farmer.html">Farmer</a>
+                <a class="link" href="consumer.html">Consumer</a>
+                <a class="link" href="logistics.html">Logistics</a>
+                <a class="link active" href="analytics.html">Market & Pricing</a>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <section class="panel">
+            <h2>Market Analysis & Pricing</h2>
+            <p class="muted">Local market trend simulation gives suggested fair price based on region-specific data. This helps you price your products competitively.</p>
+            <div class="two">
+                <div class="card">
+                    <h3 style="margin:0 0 10px;">Price Suggestion Tool</h3>
+                    <div class="two">
+                        <div class="kv">
+                            <label>Product</label>
+                            <input id="a-product" type="text" placeholder="Tomato" />
+                        </div>
+                        <div class="kv">
+                            <label>Region</label>
+                            <input id="a-region" type="text" placeholder="Kerala" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <button id="a-analyze" class="btn">Analyze Market Price</button>
+                    </div>
+                    <div id="a-out" class="list"></div>
+                </div>
+
+                <div class="card">
+                    <h3 style="margin:0 0 10px;">Price Trend for <span id="trend-product-name">Tomato</span> (7 Days)</h3>
+                    
+                    <div class="chart-container">
+                        <div class="chart-axis-label y-high">Max Price (₹)</div>
+                        <div class="chart-axis-label y-low">Min Price (₹)</div>
+                        
+                        <svg id="trend-graph-svg" class="chart-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                            <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(148,163,184,0.15)" stroke-dasharray="2 2" />
+                            <line x1="0" y1="80" x2="100" y2="80" stroke="rgba(148,163,184,0.15)" stroke-dasharray="2 2" />
+
+                            <polyline id="price-line" fill="none" stroke="var(--accent-2)" stroke-width="2" />
+                            
+                            </svg>
+
+                        <div class="chart-axis-label x-start">7 Days Ago</div>
+                        <div class="chart-axis-label x-end">Today</div>
+                    </div>
+                    
+                    <div id="trend-summary" class="chart-trend trend-neutral">
+                        <span id="trend-icon"></span>
+                        <span id="trend-text">Price has been stable this week.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <script>
+        const $ = (q) => document.querySelector(q);
+
+        function normalizeText(s){ return (s||'').trim().toLowerCase(); }
+
+        // Mock analysis logic remains the same
+        function analyzePrice(product, region){
+            // Baseline price based on product name length
+            const baseline = 10 + (normalizeText(product).length % 10);
+            // Regional factor based on region name length
+            const regional = 1 + (normalizeText(region).length % 5);
+            // Daily sway simulation (uses sine wave for predictable, cyclical change)
+            const daysSinceStart = Math.floor(Date.now() / 8.64e7); 
+            const trendFactor = Math.sin(daysSinceStart * 0.5) * 0.5; // Oscillates between -0.5 and 0.5
+            
+            const suggested = Math.round((baseline + regional + trendFactor * 5) * 10) / 10;
+            const range = [Math.max(5, suggested - 3), suggested + 3];
+
+            // Generate mock data points for the graph (7 days)
+            const priceData = [];
+            let pointsString = "";
+            let minPrice = Infinity;
+            let maxPrice = -Infinity;
+
+            for (let i = 0; i <= 6; i++) {
+                const dayFactor = Math.sin((daysSinceStart - 6 + i) * 0.5) * 0.5;
+                let price = (baseline + regional + dayFactor * 5);
+                
+                // Simulate some random noise for better look
+                price += (Math.random() * 1.5 - 0.75); 
+                price = Math.round(price * 10) / 10;
+                
+                minPrice = Math.min(minPrice, price);
+                maxPrice = Math.max(maxPrice, price);
+                priceData.push(price);
+            }
+            
+            // Map the prices (Y) to SVG coordinates (0-100)
+            const priceRange = maxPrice - minPrice;
+            for (let i = 0; i <= 6; i++) {
+                const x = (i / 6) * 100;
+                // Map price to Y coordinate. NOTE: SVG Y=0 is top, Y=100 is bottom.
+                const y = 100 - (((priceData[i] - minPrice) / priceRange) * 80 + 10); // Scale to fit between 10 and 90
+                pointsString += `${x.toFixed(1)},${y.toFixed(1)} `;
+            }
+
+            const currentPrice = priceData[6];
+            const previousPrice = priceData[5];
+            const trendDifference = currentPrice - previousPrice;
+
+            return { 
+                suggested, 
+                range, 
+                confidence: Math.round(70 + Math.abs(trendFactor) * 40),
+                currentPrice,
+                minPrice: minPrice.toFixed(1),
+                maxPrice: maxPrice.toFixed(1),
+                pointsString,
+                trendDifference
+            };
+        }
+
+        // Function to draw and update the graph elements
+        function updateGraph(product, analysisResult) {
+            const svg = $('#trend-graph-svg');
+            const line = $('#price-line');
+            const summaryDiv = $('#trend-summary');
+            const summaryIcon = $('#trend-icon');
+            const summaryText = $('#trend-text');
+
+            if (!svg || !line) return;
+
+            // 1. Update Axis Labels
+            $('.chart-axis-label.y-high').textContent = `₹${analysisResult.maxPrice}`;
+            $('.chart-axis-label.y-low').textContent = `₹${analysisResult.minPrice}`;
+            $('#trend-product-name').textContent = product;
+
+            // 2. Update Polyline
+            line.setAttribute('points', analysisResult.pointsString);
+            line.style.stroke = 'var(--accent-2)';
+
+            // 3. Remove existing points
+            svg.querySelectorAll('.data-point').forEach(p => p.remove());
+
+            // 4. Generate and place new data points
+            const points = analysisResult.pointsString.trim().split(' ').map(p => p.split(',').map(Number));
+            
+            // Draw points (Current day, 7 days ago, Max, Min)
+            points.forEach(([x, y], index) => {
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', x);
+                circle.setAttribute('cy', y);
+                circle.setAttribute('r', '2');
+                circle.setAttribute('class', 'data-point');
+
+                if (index === 6) { // Today's Price (Highlighted)
+                    circle.setAttribute('r', '4');
+                    circle.setAttribute('fill', analysisResult.trendDifference >= 0 ? 'var(--accent)' : 'var(--warn)');
+                    circle.style.stroke = 'var(--text)';
+                    circle.style.strokeWidth = '1';
+                } else if (index === 0) { // Start Price
+                    circle.setAttribute('fill', 'var(--muted)');
+                } else {
+                    circle.setAttribute('fill', 'var(--accent-2)');
+                }
+                svg.appendChild(circle);
+            });
+            
+            // 5. Update Trend Summary
+            const diff = analysisResult.trendDifference;
+            summaryIcon.innerHTML = '';
+            
+            if (diff > 0.5) {
+                summaryDiv.className = 'chart-trend trend-up';
+                summaryIcon.innerHTML = '⬆️';
+                summaryText.textContent = `Price is sharply UP, rising ₹${diff.toFixed(2)} this week.`;
+            } else if (diff < -0.5) {
+                summaryDiv.className = 'chart-trend trend-down';
+                summaryIcon.innerHTML = '⬇️';
+                summaryText.textContent = `Price is sharply DOWN, dropping ₹${Math.abs(diff).toFixed(2)} this week.`;
+            } else {
+                summaryDiv.className = 'chart-trend trend-neutral';
+                summaryIcon.innerHTML = '➡️';
+                summaryText.textContent = `Price has been stable (${diff.toFixed(2)} change) this week.`;
+            }
+        }
+
+
+        window.addEventListener('DOMContentLoaded', ()=>{
+            // Initial render on load
+            const initialResult = analyzePrice($('#a-product').value.trim() || 'Tomato', $('#a-region').value.trim() || 'Default');
+            updateGraph('Tomato', initialResult);
+
+            // Attach listener to the Analyze button
+            document.querySelector('#a-analyze').addEventListener('click', ()=>{
+                const p = $('#a-product').value.trim() || 'Tomato';
+                const r = $('#a-region').value.trim() || 'Default';
+                const res = analyzePrice(p, r);
+                
+                // Update graph visualization
+                updateGraph(p, res);
+
+                // Update suggested price output
+                const out = $('#a-out'); out.innerHTML='';
+                const div = document.createElement('div'); div.className='card';
+                
+                div.innerHTML = `
+                    <div class="row" style="justify-content:space-between; align-items:center;">
+                        <div><strong>${p}</strong> in <span class="chip">${r}</span></div>
+                        <div class="mono" style="font-size: 14px;">Suggested: <span style="color: var(--accent); font-weight: 700;">₹${res.suggested}/kg</span></div>
+                    </div>
+                    <div class="muted">Expected range: ₹${res.range[0].toFixed(1)} - ₹${res.range[1].toFixed(1)} • Confidence ${res.confidence}%</div>
+                `;
+                out.appendChild(div);
+                
+                // Add hover effect to the newly generated card
+                div.addEventListener('mouseover', () => { div.style.transform = 'translateY(-2px) scale(1.01)'; div.style.boxShadow = '0 0 10px var(--glow-light)'; });
+                div.addEventListener('mouseout', () => { div.style.transform = 'none'; div.style.boxShadow = 'none'; });
+            });
+            
+            // Set initial input values
+            if ($('#a-product')) $('#a-product').value = 'Tomato';
+            if ($('#a-region')) $('#a-region').value = 'Kerala';
+        });
+    </script>
+</body>
+</html>

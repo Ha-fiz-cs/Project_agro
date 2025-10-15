@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agro Link • Consumer</title>
+    <style>
+        /* Color Variables */
+        :root { 
+            --bg:#0f172a; 
+            --panel:#111827; 
+            --muted:#94a3b8; 
+            --text:#e5e7eb; 
+            --accent:#22c55e; /* Green */
+            --accent-2:#06b6d4; /* Cyan/Blue */
+            --kyc-verified-color: #2563eb; /* Strong Blue for KYC */
+            --glow-light: rgba(34, 197, 94, 0.2);
+            --trans-duration: 0.25s;
+        }
+        * { box-sizing: border-box; }
+        body { 
+            margin:0; 
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; 
+            background: linear-gradient(135deg, #0b1220, #0f172a 60%, #0b1220); 
+            color: var(--text); 
+        }
+        /* --- General UI Enhancements --- */
+        header { 
+            position: sticky; 
+            top:0; 
+            backdrop-filter: blur(8px); 
+            background: rgba(2,6,23,.7); 
+            border-bottom: 1px solid rgba(148,163,184,.15); 
+            z-index: 10;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+        .nav { 
+            display:flex; 
+            align-items:center; 
+            justify-content:space-between; 
+            max-width:1200px; 
+            margin:0 auto; 
+            padding:14px 20px; 
+        }
+        .brand { display:flex; gap:10px; align-items:center; font-weight:700; }
+        .brand .logo { 
+            width:34px; height:34px; border-radius:10px; 
+            background: linear-gradient(135deg, var(--accent), var(--accent-2)); 
+            display:grid; place-items:center; color:#041b11; font-weight:900;
+            transition: transform var(--trans-duration);
+        }
+        .brand .logo:hover { transform: rotate(5deg) scale(1.05); }
+
+        .links { display:flex; gap:10px; flex-wrap: wrap; }
+        .link { 
+            color: var(--text); text-decoration:none; border:1px solid rgba(148,163,184,.18); 
+            padding:8px 12px; border-radius:10px; background: rgba(17,24,39,.6); 
+            font-size:14px; 
+            transition: all var(--trans-duration);
+        }
+        .link:hover {
+            background: rgba(6, 182, 212, 0.1); /* Cyan hover on nav links */
+            border-color: var(--accent-2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(6, 182, 212, 0.4);
+        }
+        .link.active { 
+            background: linear-gradient(180deg, rgba(6, 182, 212, 0.15), rgba(34,197,94,.12)); /* Active mix */
+            border-color: var(--accent-2); 
+        }
+        main { max-width:1200px; margin: 20px auto; padding: 0 20px 40px; display:grid; gap:16px; }
+        .panel { 
+            background: radial-gradient(1000px 600px at 100% -10%, rgba(34,197,94,.06), transparent 60%), radial-gradient(1000px 600px at -10% 120%, rgba(6,182,212,.06), transparent 60%), rgba(2,6,23,.5); 
+            border:1px solid rgba(148,163,184,.15); 
+            border-radius:16px; 
+            padding:16px; 
+        }
+        .row { display:flex; gap:10px; flex-wrap:wrap; }
+        .two { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+        .three { display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; }
+        .kv { display:grid; gap:6px; }
+        label { font-size:13px; color:#94a3b8; }
+        input, select, textarea, button { font: inherit; }
+        
+        /* Input/Select Focus Effect */
+        input[type="text"], input[type="number"], select, textarea { 
+            width:100%; background: rgba(3,7,18,.7); 
+            border:1px solid rgba(148,163,184,.18); color:var(--text); 
+            padding:10px 12px; border-radius:10px;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent-2); /* Bright cyan border on focus */
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.3); /* Subtle outer glow */
+            outline: none;
+        }
+
+        /* Button Hover Effects */
+        .btn { 
+            border:1px solid rgba(148,163,184,.25); 
+            background: linear-gradient(180deg, rgba(34,197,94,.2), rgba(6,182,212,.15)); 
+            color: var(--text); padding:10px 14px; border-radius:10px; cursor:pointer;
+            transition: all var(--trans-duration);
+        }
+        .btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px var(--glow-light);
+        }
+        .btn.secondary { background: rgba(17,24,39,.6); border-color: var(--muted); }
+        .btn.secondary:hover:not(:disabled) {
+            background: rgba(17,24,39,.8);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.5);
+        }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* Card Hover Effects */
+        .card { 
+            border:1px solid rgba(148,163,184,.15); background: rgba(2,6,23,.6); 
+            border-radius:12px; padding:12px; display:grid; gap:8px; 
+            transition: box-shadow var(--trans-duration), border-color var(--trans-duration), transform var(--trans-duration);
+        }
+        
+        /* Apply hover to the request form card */
+        .two .card:first-child:hover {
+            border-color: var(--accent-2);
+            box-shadow: 0 5px 20px rgba(6, 182, 212, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        /* Apply hover to individual request listings */
+        .list .card { cursor: pointer; }
+        .list .card:hover {
+            background: rgba(17,24,39,.8);
+            border-color: var(--accent); /* Green highlight for consumer list */
+            transform: translateX(5px) scale(1.01); 
+            box-shadow: 0 0 10px var(--glow-light); 
+        }
+
+        /* --- Specific KYC/Chip Styles --- */
+        .chip { 
+            display:inline-flex; align-items:center; gap:6px; 
+            border:1px solid rgba(148,163,184,.25); border-radius:999px; 
+            padding:6px 10px; color:#94a3b8; font-size:12px; background: rgba(2,6,23,.6); 
+        }
+        .chip.verified {
+            background: rgba(37, 99, 235, 0.2);
+            border-color: var(--kyc-verified-color);
+            color: var(--kyc-verified-color);
+            font-weight: 600;
+        }
+        .kyc-check {
+            color: var(--kyc-verified-color);
+            font-size: 1.1em;
+            margin-right: 4px;
+            line-height: 1;
+        }
+        /* --- Existing Styles --- */
+        .list { display:grid; gap:10px; }
+        .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size:12px; color: #a7f3d0; }
+        @media (max-width: 920px) { .two, .three { grid-template-columns: 1fr; } }
+    </style>
+    <script>
+        const $ = (q) => document.querySelector(q);
+        
+        // --- Data Persistence and DB Setup ---
+        try {
+            localStorage.setItem('test', 'test');
+            localStorage.removeItem('test');
+        } catch (e) {
+            console.error("Local Storage is not available or blocked.");
+        }
+        
+        const db = {
+            farmers: JSON.parse(localStorage.getItem('agro_farmers')||'[]'),
+            consumers: JSON.parse(localStorage.getItem('agro_consumers')||'[]'),
+            matches: JSON.parse(localStorage.getItem('agro_matches')||'[]'),
+        };
+        
+        // Seed demo data if empty
+        if (db.farmers.length === 0 && db.consumers.length === 0) {
+            db.farmers.push({ id: 'f-demo-1', product: 'Tomato', category: 'Vegetable', weight: 120, price: 16, location: 'Nashik, MH', tags: ['Grade A', 'Fresh'] });
+            db.consumers.push({ id: 'c-demo-1', product: 'Potato', category: 'Vegetable', qty: 60, price: 18, location: 'Pune, MH', kyc: { verified: true, id: 'KYC-DEMO-001' }, created: Date.now() });
+            localStorage.setItem('agro_farmers', JSON.stringify(db.farmers));
+            localStorage.setItem('agro_consumers', JSON.stringify(db.consumers));
+        }
+
+        function persist(){
+            localStorage.setItem('agro_consumers', JSON.stringify(db.consumers));
+            localStorage.setItem('agro_matches', JSON.stringify(db.matches));
+        }
+        
+        // --- UI Rendering ---
+        function renderConsumers(){
+            const list = $('#c-list'); if (!list) return;
+            list.innerHTML='';
+            db.consumers.slice().reverse().forEach(item=>{
+                const card = document.createElement('div'); card.className='card';
+                // Render KYC status based on stored data
+                const isVerified = item.kyc?.verified;
+                const kycStatus = isVerified ? 
+                    `<div class="chip verified"><span class="kyc-check">✔</span>KYC: Verified</div>` : 
+                    `<div class="chip">KYC: Unverified</div>`;
+                card.innerHTML=`
+                    <div class="row" style="justify-content:space-between; align-items:center;">
+                        <div><strong>${item.product}</strong> <span class="chip">${item.category}</span></div>
+                        <div class="mono">₹${item.price}/kg • ${item.qty}kg</div>
+                    </div>
+                    <div class="row" style="justify-content:space-between; align-items:center;">
+                        <div class="muted">${item.location}</div>
+                        ${kycStatus}
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        // --- Matching Logic (Called after successful submission) ---
+        function matchEngine(){
+            const newMatches = [];
+            for (const req of db.consumers) {
+                if (!req.kyc?.verified) continue;
+                for (const lot of db.farmers) {
+                    const productOk = (req.product||'').trim().toLowerCase() === (lot.product||'').trim().toLowerCase();
+                    if (!productOk) continue;
+                    const catOk = req.category==='Any' || req.category===lot.category;
+                    const priceOk = lot.price <= req.price * 1.05;
+                    const weightOk = lot.weight >= req.qty * 0.8;
+                    const qOk = !lot.tags || lot.tags.includes('Grade A') || lot.tags.includes('Grade B');
+                    if (!(catOk && priceOk && weightOk && qOk)) continue;
+                    const exists = db.matches.some(m=> m.lotId===lot.id && m.reqId===req.id);
+                    if (exists) continue;
+                    const hold = Math.round(Math.min(5000, Math.max(200, req.qty * req.price * 0.02)));
+                    db.matches.push({ id: crypto.randomUUID(), lotId:lot.id, reqId:req.id, status:'pending-logistics', escrow:{ hold, refunded:false }, created:Date.now(), timeline:[{t:Date.now(), e:'match_found'}] });
+                    newMatches.push({ lot, req, hold });
+                }
+            }
+            if (newMatches.length){ persist(); alert('Match engine ran. Switch to Logistics to view matches.'); }
+        }
+        
+        // --- Validation Logic ---
+        function isKycValid(id) {
+            // Simple mock check: must be non-empty and must start with "KYC-" or contain "demo"
+            return id && (/^KYC-[A-Z]{2,}-\d{3,}$/.test(id.trim()) || id.trim().toLowerCase().includes('demo'));
+        }
+
+        function enableSubmitIfFormValid() {
+            const product = $('#c-product').value.trim();
+            const qty = parseFloat($('#c-qty').value);
+            const price = parseFloat($('#c-price').value);
+            const location = $('#c-location').value.trim();
+            const kycId = $('#c-kyc-id').value.trim();
+            
+            const isDataValid = product && (qty > 0) && (price > 0) && location;
+            const isKycFieldPopulated = kycId.length > 0;
+            
+            // Only enable submit if main data is present AND the KYC field is populated.
+            // Actual KYC check happens on submit.
+            $('#c-submit').disabled = !(isDataValid && isKycFieldPopulated);
+        }
+
+        // --- Event Listeners and Initialization ---
+        window.addEventListener('DOMContentLoaded', ()=>{
+            renderConsumers();
+            
+            const submitBtn = $('#c-submit');
+            const clearBtn = $('#c-clear');
+            const formInputs = ['#c-product', '#c-qty', '#c-price', '#c-location', '#c-kyc-id'];
+
+            // Attach input event listeners to enable/disable the submit button dynamically
+            formInputs.forEach(selector => {
+                $(selector)?.addEventListener('input', enableSubmitIfFormValid);
+                $(selector)?.addEventListener('change', enableSubmitIfFormValid);
+            });
+
+            // 1. Submit Request Logic (Direct Submission)
+            submitBtn.addEventListener('click', ()=>{
+                const product = $('#c-product').value.trim();
+                const category = $('#c-category').value;
+                const qty = parseFloat($('#c-qty').value);
+                const price = parseFloat($('#c-price').value);
+                const location = $('#c-location').value.trim();
+                const id = $('#c-kyc-id').value.trim();
+                
+                // FINAL CHECK: Check for valid data and mock KYC ID format
+                if (!product || !(qty > 0) || !(price > 0) || !location) { 
+                    alert('Please fill product, quantity, target price, and location with valid data.'); 
+                    return; 
+                }
+                if (!isKycValid(id)) {
+                    alert('Mock DigiLocker ID is invalid. Please enter a valid format (e.g., KYC-MH-123 or one containing "demo").');
+                    return;
+                }
+
+                // Submission successful: treat as verified
+                db.consumers.push({ id: crypto.randomUUID(), product, category, qty, price, location, kyc:{ verified:true, id }, created:Date.now() });
+                persist(); 
+                renderConsumers();
+                
+                alert('Request submitted. We will try to find a match!');
+                matchEngine();
+                clearBtn.click(); // Clear the form after submission
+            });
+
+            // 2. Clear Form Logic
+            clearBtn.addEventListener('click', ()=>{
+                formInputs.forEach(id=>$(id).value='');
+                submitBtn.disabled = true; // Ensure button is disabled after clear
+            });
+            
+            // Initial state check
+            enableSubmitIfFormValid();
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <div class="nav">
+            <div class="brand">
+                <div class="logo">Ag</div>
+                <div>Agro Link</div>
+            </div>
+            <nav class="links">
+                <a class="link" href="farmer.html">Farmer</a>
+                <a class="link active" href="consumer.html">Consumer</a>
+                <a class="link" href="logistics.html">Logistics</a>
+                <a class="link" href="analytics.html">Market & Pricing</a>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <section class="panel">
+            <h2>Consumer Request</h2>
+            <p class="muted">Describe your need. DigiLocker-style mock KYC ensures genuineness. A small refundable hold is simulated on match.</p>
+            <div class="two">
+                <div class="card">
+                    <div class="two">
+                        <div class="kv">
+                            <label>Desired Product</label>
+                            <input id="c-product" type="text" placeholder="e.g., Tomato" />
+                        </div>
+                        <div class="kv">
+                            <label>Desired Category</label>
+                            <select id="c-category">
+                                <option value="Any">Any</option>
+                                <option value="Vegetable">Vegetable</option>
+                                <option value="Fruit">Fruit</option>
+                                <option value="Grain">Grain</option>
+                                <option value="Spice">Spice</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="three">
+                        <div class="kv">
+                            <label>Quantity (kg)</label>
+                            <input id="c-qty" type="number" min="0" step="0.1" placeholder="50" />
+                        </div>
+                        <div class="kv">
+                            <label>Target Price per kg (₹)</label>
+                            <input id="c-price" type="number" min="0" step="0.1" placeholder="18" />
+                        </div>
+                        <div class="kv">
+                            <label>Delivery Location</label>
+                            <input id="c-location" type="text" placeholder="City, State" />
+                        </div>
+                    </div>
+                    <div class="kv">
+                        <label>Mock DigiLocker ID (e.g., KYC-AP-123 or contains 'demo')</label>
+                        <input id="c-kyc-id" type="text" placeholder="Enter mock DigiLocker ID" />
+                    </div>
+                    <div class="row">
+                        <button id="c-submit" class="btn" disabled>Submit Request</button>
+                        <button id="c-clear" class="btn secondary">Clear</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3 style="margin:0 0 6px;">My Requests</h3>
+                    <div id="c-list" class="list"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

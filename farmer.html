@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agro Link • Farmer</title>
+    <style>
+        :root { 
+            --bg:#0f172a; 
+            --panel:#111827; 
+            --muted:#94a3b8; 
+            --text:#e5e7eb; 
+            --accent:#22c55e; /* Green */
+            --accent-2:#06b6d4; /* Cyan */
+            --warn:#f59e0b; 
+            --danger:#ef4444; 
+            --glow-light: rgba(34, 197, 94, 0.2);
+            --glow-strong: rgba(34, 197, 94, 0.5);
+            --trans-duration: 0.25s;
+        }
+
+        * { box-sizing: border-box; }
+
+        body { 
+            margin:0; 
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; 
+            background: linear-gradient(135deg, #0b1220, #0f172a 60%, #0b1220); 
+            color: var(--text); 
+        }
+
+        header { 
+            position: sticky; 
+            top:0; 
+            backdrop-filter: blur(8px); 
+            background: rgba(2,6,23,.7); 
+            border-bottom: 1px solid rgba(148,163,184,.15); 
+            z-index: 10; 
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); 
+        }
+
+        .nav { 
+            display:flex; 
+            align-items:center; 
+            justify-content:space-between; 
+            max-width:1200px; 
+            margin:0 auto; 
+            padding:14px 20px; 
+        }
+
+        .brand { display:flex; gap:10px; align-items:center; font-weight:700; }
+
+        .brand .logo { 
+            width:34px; height:34px; border-radius:10px; 
+            background: linear-gradient(135deg, var(--accent), var(--accent-2)); 
+            display:grid; place-items:center; color:#041b11; font-weight:900; 
+            transition: transform var(--trans-duration);
+        }
+        .brand .logo:hover { transform: rotate(5deg) scale(1.05); }
+
+        .links { display:flex; gap:10px; flex-wrap: wrap; }
+        .link { 
+            color: var(--text); text-decoration:none; border:1px solid rgba(148,163,184,.18); 
+            padding:8px 12px; border-radius:10px; background: rgba(17,24,39,.6); 
+            font-size:14px; transition: all var(--trans-duration);
+        }
+        .link:hover {
+            background: rgba(34,197,94,.1); border-color: var(--accent);
+            transform: translateY(-2px); box-shadow: 0 4px 10px var(--glow-light);
+        }
+        .link.active { 
+            background: linear-gradient(180deg, rgba(34,197,94,.15), rgba(6,182,212,.12)); 
+            border-color: rgba(34,197,94,.35); 
+        }
+
+        main { max-width:1200px; margin: 20px auto; padding: 0 20px 40px; display:grid; gap:16px; }
+        .panel { 
+            background: radial-gradient(1000px 600px at 100% -10%, rgba(34,197,94,.06), transparent 60%), radial-gradient(1000px 600px at -10% 120%, rgba(6,182,212,.06), transparent 60%), rgba(2,6,23,.5); 
+            border:1px solid rgba(148,163,184,.15); border-radius:16px; padding:16px; 
+        }
+
+        .btn { 
+            border:1px solid rgba(148,163,184,.25); background: linear-gradient(180deg, rgba(34,197,94,.2), rgba(6,182,212,.15)); 
+            color: var(--text); padding:10px 14px; border-radius:10px; cursor:pointer; 
+            transition: all var(--trans-duration);
+        }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 3px 10px var(--glow-light); }
+        .btn.secondary { background: rgba(17,24,39,.6); border-color: var(--muted); }
+        .btn.secondary:hover { background: rgba(17,24,39,.8); transform: translateY(-1px); box-shadow: 0 3px 5px rgba(0, 0, 0, 0.5); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .card { 
+            border:1px solid rgba(148,163,184,.15); background: rgba(2,6,23,.6); 
+            border-radius:12px; padding:12px; display:grid; gap:8px; 
+            transition: box-shadow var(--trans-duration), border-color var(--trans-duration), transform var(--trans-duration);
+        }
+        .two .card:first-child:hover { 
+            border-color: var(--accent); box-shadow: 0 5px 20px var(--glow-light); 
+            transform: translateY(-2px); 
+        }
+        .list .card { transition: all var(--trans-duration); cursor: pointer; }
+        .list .card:hover { 
+            background: rgba(17,24,39,.8); border-color: var(--accent-2); 
+            transform: translateX(5px) scale(1.01); box-shadow: 0 0 10px rgba(6, 182, 212, 0.3); 
+        }
+
+        .row { display:flex; gap:10px; flex-wrap:wrap; }
+        .two { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+        .three { display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; }
+        .kv { display:grid; gap:6px; }
+        label { font-size:13px; color:#94a3b8; }
+        input, select, textarea, button { font: inherit; }
+        
+        input[type="text"], input[type="number"], select, textarea { 
+            width:100%; background: rgba(3,7,18,.7); border:1px solid rgba(148,163,184,.18); 
+            color:var(--text); padding:10px 12px; border-radius:10px; 
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent-2); box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.3); outline: none;
+        }
+
+        textarea { min-height:72px; }
+        
+        /* --- New/Modified Image Upload Styles --- */
+        .upload-area {
+            position: relative;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            min-height: 100px; /* Ensure space for the dropzone */
+            background: rgba(3,7,18,.7);
+            border: 1px dashed rgba(148,163,184,.25);
+            border-radius: 10px;
+            padding: 10px;
+            align-items: center;
+        }
+        .upload-input {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 20;
+        }
+        .upload-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: grid;
+            place-items: center;
+            color: var(--muted);
+            font-size: 14px;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .upload-area.has-files .upload-placeholder {
+            display: none; /* Hide placeholder when images are present */
+        }
+        .upload-area.drag-over {
+            border-color: var(--accent);
+            background: rgba(34, 197, 94, 0.1);
+        }
+        .thumbs { display:flex; gap:8px; flex-wrap:wrap; z-index: 30; }
+        .thumb { 
+            width:72px; height:72px; border-radius:8px; 
+            border:1px solid rgba(148,163,184,.25); 
+            background:#0b1220 center/cover no-repeat; 
+            position:relative; 
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+        /* --- End New Styles --- */
+
+        .chip { display:inline-flex; align-items:center; gap:6px; border:1px solid rgba(148,163,184,.25); border-radius:999px; padding:6px 10px; color:#94a3b8; font-size:12px; background: rgba(2,6,23,.6); }
+        .list { display:grid; gap:10px; }
+        .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size:12px; color: #a7f3d0; }
+        .notice { background: rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.35); color:#b6f2cf; padding:10px; border-radius:10px; font-size:13px; }
+        @media (max-width: 920px) { .two, .three { grid-template-columns: 1fr; } }
+        .muted { color: var(--muted); font-size: 13px; }
+        .hidden { display:none !important; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav">
+            <div class="brand">
+                <div class="logo">Ag</div>
+                <div>Agro Link</div>
+            </div>
+            <nav class="links">
+                <a class="link active" href="farmer.html">Farmer</a>
+                <a class="link" href="consumer.html">Consumer</a>
+                <a class="link" href="logistics.html">Logistics</a>
+                <a class="link" href="analytics.html">Market & Pricing</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="panel">
+            <h2>Farmer Listing</h2>
+            <p class="muted">
+                Add your products with details and upload images. Our mock CNN classifier tags images for quality and grade.
+            </p>
+            <div class="two">
+                <div class="card">
+                    <div class="two">
+                        <div class="kv">
+                            <label>Product</label>
+                            <input id="f-product" type="text" placeholder="e.g., Tomato, Onion, Rice" />
+                        </div>
+                        <div class="kv">
+                            <label>Category</label>
+                            <select id="f-category">
+                                <option value="Vegetable">Vegetable</option>
+                                <option value="Fruit">Fruit</option>
+                                <option value="Grain">Grain</option>
+                                <option value="Spice">Spice</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="three">
+                        <div class="kv">
+                            <label>Weight (kg)</label>
+                            <input id="f-weight" type="number" min="0" step="0.1" placeholder="100" />
+                        </div>
+                        <div class="kv">
+                            <label>Price per kg (₹)</label>
+                            <input id="f-price" type="number" min="0" step="0.1" placeholder="15" />
+                        </div>
+                        <div class="kv">
+                            <label>Location</label>
+                            <input id="f-location" type="text" placeholder="District, State" />
+                        </div>
+                    </div>
+
+                    <div class="kv">
+                        <label>Product Images (Drag & Drop or Click)</label>
+                        <div id="f-upload-area" class="upload-area">
+                            <input id="f-images" class="upload-input" type="file" accept="image/*" multiple />
+                            <div class="upload-placeholder">
+                                ⬆️ Drag & Drop up to 6 images here
+                            </div>
+                            <div id="f-thumbs" class="thumbs"></div>
+                        </div>
+                    </div>
+
+                    <div class="kv">
+                        <label>Notes</label>
+                        <textarea id="f-notes" placeholder="Harvest date, pesticide-free, etc."></textarea>
+                    </div>
+
+                    <div class="row">
+                        <button id="f-classify" class="btn secondary">Run Mock Classification</button>
+                        <button id="f-submit" class="btn">Publish Listing</button>
+                        <button id="f-clear" class="btn secondary">Clear</button>
+                    </div>
+
+                    <div id="f-classify-out" class="row"></div>
+                    <div id="f-toast" class="notice hidden">Listing published.</div>
+                </div>
+
+                <div class="card">
+                    <h3 style="margin:0 0 6px;">My Listings</h3>
+                    <div id="f-list" class="list"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const $ = (q) => document.querySelector(q);
+        const $$ = (q) => Array.from(document.querySelectorAll(q));
+        
+        const MAX_FILES = 6; // Limit for visual appearance
+
+        // --- Data Persistence and Initial Seed ---
+        const db = {
+            farmers: JSON.parse(localStorage.getItem('agro_farmers') || '[]'),
+            consumers: JSON.parse(localStorage.getItem('agro_consumers') || '[]'),
+            matches: JSON.parse(localStorage.getItem('agro_matches') || '[]'),
+        };
+
+        function persist() {
+            localStorage.setItem('agro_farmers', JSON.stringify(db.farmers));
+            localStorage.setItem('agro_consumers', JSON.stringify(db.consumers));
+            localStorage.setItem('agro_matches', JSON.stringify(db.matches));
+        }
+
+        if (db.farmers.length === 0 && db.consumers.length === 0) {
+            db.farmers.push({ id: crypto.randomUUID(), product: 'Tomato', category: 'Vegetable', weight: 120, price: 16, location: 'Nashik, MH', notes: 'Organic batch', images: [], tags: ['Grade A', 'Fresh', 'Uniform'], created: Date.now() });
+            db.consumers.push({ id: crypto.randomUUID(), product: 'Tomato', category: 'Vegetable', qty: 60, price: 18, location: 'Pune, MH', kyc: { verified: true, id: 'KYC-DEMO-001' }, created: Date.now() });
+            persist();
+        }
+
+        // --- Utility Functions ---
+
+        function normalizeText(s) { return (s || '').trim().toLowerCase(); }
+        function isCategoryMatch(farmCat, needCat) { return needCat === 'Any' || farmCat === needCat; }
+        function priceCompatible(farmPrice, targetPrice) { return farmPrice <= targetPrice * 1.05; }
+        function weightCompatible(farmW, reqW) { return farmW >= reqW * 0.8; }
+        function tagQualityOk(tags) { return !tags || tags.includes('Grade A') || tags.includes('Grade B'); }
+
+        function mockClassifyFiles(files) {
+            const tags = [];
+            for (const f of files) {
+                const name = f.name.toLowerCase();
+                if (name.includes('a') || f.size % 3 === 0) tags.push('Grade A');
+                else if (name.includes('b') || f.size % 5 === 0) tags.push('Grade B');
+                else tags.push('Grade C');
+                if (name.includes('fresh') || f.size % 7 === 0) tags.push('Fresh');
+                if (name.includes('spot') || f.size % 11 === 0) tags.push('Spots');
+                if (name.includes('uniform') || f.size % 13 === 0) tags.push('Uniform');
+            }
+            return Array.from(new Set(tags)).slice(0, 5);
+        }
+        
+        function matchEngine() {
+            // (Matching logic is kept simple here as it's not the primary focus of this fix)
+            // It relies on up-to-date db.farmers and db.consumers to run checks.
+            const newMatches = [];
+            db.consumers.forEach(req => {
+                if (!req.kyc?.verified) return;
+                db.farmers.forEach(lot => {
+                    const exists = db.matches.some(m => m.lotId === lot.id && m.reqId === req.id);
+                    if (exists) return;
+                    if (normalizeText(req.product) === normalizeText(lot.product) && lot.price <= req.price * 1.05 && lot.weight >= req.qty * 0.8) {
+                         db.matches.push({ id: crypto.randomUUID(), lotId: lot.id, reqId: req.id, status: 'pending-logistics', escrow: { hold: 1000, refunded: false }, created: Date.now() });
+                         newMatches.push(true);
+                    }
+                });
+            });
+            if (newMatches.length) { 
+                persist(); 
+                console.log('Match engine ran. Matches found: ' + newMatches.length);
+            }
+        }
+
+
+        // --- Farmer View Logic ---
+
+        function renderFarmers() {
+            const list = $('#f-list');
+            if (!list) return;
+            list.innerHTML = '';
+            db.farmers.slice().reverse().forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="row" style="justify-content:space-between; align-items:center;">
+                        <div><strong>${item.product}</strong> <span class="chip">${item.category}</span></div>
+                        <div class="mono">₹${item.price}/kg • ${item.weight}kg</div>
+                    </div>
+                    <div class="row" style="justify-content:space-between; align-items:center;">
+                        <div class="muted">${item.location}</div>
+                        <div>${(item.tags || []).map(t => `<span class='chip'>${t}</span>`).join(' ')}</div>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+        
+        // --- Image Upload Handler Functions ---
+
+        /**
+         * Renders image thumbnails from a FileList object.
+         * @param {FileList} files 
+         */
+        function renderThumbnails(files) {
+            const list = $('#f-thumbs');
+            const uploadArea = $('#f-upload-area');
+            if (!list || !uploadArea) return;
+
+            list.innerHTML = '';
+            
+            // Limit files to MAX_FILES for display
+            const filesArray = Array.from(files).slice(0, MAX_FILES);
+
+            filesArray.forEach(file => {
+                const url = URL.createObjectURL(file);
+                const div = document.createElement('div');
+                div.className = 'thumb';
+                div.style.backgroundImage = `url(${url})`;
+                list.appendChild(div);
+            });
+
+            // Toggle placeholder visibility
+            if (filesArray.length > 0) {
+                uploadArea.classList.add('has-files');
+            } else {
+                uploadArea.classList.remove('has-files');
+            }
+        }
+
+        // --- DOMContentLoaded Setup ---
+        window.addEventListener('DOMContentLoaded', () => {
+            renderFarmers();
+            const imgInput = $('#f-images');
+            const uploadArea = $('#f-upload-area');
+            const clearBtn = $('#f-clear');
+
+            if (!imgInput || !uploadArea) return;
+
+            // 1. Handle File Selection (Click or Drop)
+            const handleFileChange = (files) => {
+                // Manually restrict the number of files the user can process
+                const restrictedFiles = Array.from(files).slice(0, MAX_FILES);
+                
+                // Create a temporary DataTransfer object to hold the restricted files
+                const dataTransfer = new DataTransfer();
+                restrictedFiles.forEach(file => dataTransfer.items.add(file));
+                
+                // Assign the restricted file list back to the input element
+                imgInput.files = dataTransfer.files; 
+                
+                renderThumbnails(imgInput.files);
+            };
+
+            // a) Standard File Input Change
+            imgInput.addEventListener('change', (e) => {
+                handleFileChange(e.target.files);
+            });
+
+            // b) Drag-and-Drop Handlers
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, false);
+            });
+
+            uploadArea.addEventListener('dragenter', () => uploadArea.classList.add('drag-over'), false);
+            uploadArea.addEventListener('dragover', () => uploadArea.classList.add('drag-over'), false);
+            uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'), false);
+            uploadArea.addEventListener('drop', (e) => {
+                uploadArea.classList.remove('drag-over');
+                const files = e.dataTransfer.files;
+                if (files.length) {
+                    handleFileChange(files);
+                }
+            }, false);
+
+
+            // 2. Mock Classification Button
+            const classifyBtn = $('#f-classify');
+            if (classifyBtn) classifyBtn.addEventListener('click', () => {
+                const files = Array.from(imgInput.files || []);
+                const tags = mockClassifyFiles(files);
+                const out = $('#f-classify-out');
+                if (!out) return;
+                out.innerHTML = '';
+                if (!tags.length) { out.innerHTML = '<span class="chip">No images selected</span>'; return; }
+                tags.forEach(t => {
+                    const s = document.createElement('span');
+                    s.className = 'chip';
+                    s.textContent = t;
+                    out.appendChild(s);
+                });
+            });
+
+            // 3. Publish Listing
+            const submitBtn = $('#f-submit');
+            if (submitBtn) submitBtn.addEventListener('click', () => {
+                const product = $('#f-product').value.trim();
+                const category = $('#f-category').value;
+                const weight = parseFloat($('#f-weight').value);
+                const price = parseFloat($('#f-price').value);
+                const location = $('#f-location').value.trim();
+                const notes = $('#f-notes').value.trim();
+                const files = Array.from(imgInput.files || []);
+                
+                if (!product || !category || !weight || !price || !location) { 
+                    alert('Please fill Product, Category, Weight, Price, and Location.'); 
+                    return; 
+                }
+
+                const tags = mockClassifyFiles(files);
+                const images = files.map(f => ({ name: f.name, size: f.size }));
+                
+                db.farmers.push({ id: crypto.randomUUID(), product, category, weight, price, location, notes, images, tags, created: Date.now() });
+                persist();
+                renderFarmers();
+                
+                const toast = $('#f-toast');
+                if (toast) { toast.classList.remove('hidden'); setTimeout(() => toast.classList.add('hidden'), 1500); }
+                
+                matchEngine();
+                clearBtn.click();
+            });
+
+            // 4. Clear Form (Modified to clear custom input area)
+            if (clearBtn) clearBtn.addEventListener('click', () => {
+                ['#f-product', '#f-weight', '#f-price', '#f-location', '#f-notes'].forEach(id => {
+                    const el = $(id);
+                    if (el) el.value = '';
+                });
+                
+                // Clear file input and reset custom UI
+                imgInput.value = ''; 
+                renderThumbnails(new FileList()); // Render empty thumbnails
+                
+                const out = $('#f-classify-out');
+                if (out) out.innerHTML = '';
+            });
+        });
+    </script>
+</body>
+</html>
