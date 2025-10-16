@@ -27,7 +27,8 @@
             align-items: center; 
             min-height: 100vh; 
             position: relative; /* For the background orb */
-            overflow: hidden;
+            overflow-x: hidden;
+            flex-direction: column;
         }
 
         /* --- New Background Orb Effect --- */
@@ -80,7 +81,7 @@
         }
         .stats-grid { 
             display: grid; 
-            grid-template-columns: repeat(5, 1fr); /* Changed to 5 columns for the 5 stats */
+            grid-template-columns: repeat(5, 1fr);
             gap: 20px; 
             margin-bottom: 30px; 
         }
@@ -89,26 +90,25 @@
             border: 1px solid rgba(148,163,184,.15); 
             border-radius: 12px; 
             padding: 20px 10px;
-            transition: all 0.3s ease-in-out; /* Add transition for hover effect */
+            transition: all 0.3s ease-in-out;
             cursor: default;
         }
 
-        /* --- Stat Card Hover Effect --- */
         .stat-card:hover {
-            transform: translateY(-5px) scale(1.05); /* Lift and enlarge slightly */
+            transform: translateY(-5px) scale(1.05);
             border-color: var(--accent);
-            box-shadow: 0 0 15px var(--glow), 0 0 5px var(--glow) inset; /* Soft border glow */
-            background: rgba(34, 197, 94, 0.1); /* Slight background change */
+            box-shadow: 0 0 15px var(--glow), 0 0 5px var(--glow) inset;
+            background: rgba(34, 197, 94, 0.1);
         }
         
         .stat-card .number { 
-            font-size: 2em; /* Slightly smaller for 5 columns */
+            font-size: 2em; 
             font-weight: 700; 
             color: var(--accent-2); 
             margin-bottom: 5px; 
         }
         .stat-card .label { 
-            font-size: 0.9em; /* Slightly smaller for 5 columns */
+            font-size: 0.9em; 
             color: var(--muted); 
         }
         .btn-link { 
@@ -124,11 +124,58 @@
             border: none; 
         }
 
-        /* --- Button Hover Effect --- */
         .btn-link:hover { 
             transform: translateY(-3px) scale(1.02); 
-            box-shadow: 0 8px 25px var(--glow); /* Stronger lift and glow */
+            box-shadow: 0 8px 25px var(--glow);
             filter: brightness(1.1);
+        }
+
+        /* --- Contact Section --- */
+        footer.contact {
+            background: rgba(17, 24, 39, 0.6);
+            border-top: 1px solid rgba(148, 163, 184, 0.15);
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--text);
+            position: relative;
+            z-index: 10;
+            width: 100%;
+        }
+
+        .contact-container h2 {
+            color: var(--accent);
+            margin-bottom: 10px;
+            font-size: 1.8em;
+            text-shadow: 0 0 10px var(--glow);
+        }
+
+        .contact-container p {
+            margin: 6px 0;
+            color: var(--muted);
+            font-size: 1em;
+        }
+
+        .socials {
+            margin-top: 15px;
+        }
+
+        .socials a {
+            color: var(--accent-2);
+            text-decoration: none;
+            margin: 0 10px;
+            font-weight: 600;
+            transition: color 0.3s, transform 0.2s;
+        }
+
+        .socials a:hover {
+            color: var(--accent);
+            transform: scale(1.1);
+        }
+
+        footer .copyright {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: var(--muted);
         }
     </style>
 </head>
@@ -138,10 +185,8 @@
 
     <main>
         <div class="intro-panel">
-            <h1>Agri Link </h1>
-            <p class="tagline">Directly connecting farmers to consumers and logistics, ensuring fair pricing and fresh produce. We work to deduct multiple intermediaries
-                
-            </p>
+            <h1>Agri Link</h1>
+            <p class="tagline">Directly connecting farmers to consumers and logistics, ensuring fair pricing and fresh produce. We work to deduct multiple intermediaries.</p>
 
             <div class="stats-grid">
                 <div class="stat-card">
@@ -171,5 +216,22 @@
             </a>
         </div>
     </main>
+
+    <!-- Contact Us Section -->
+    <footer class="contact">
+        <div class="contact-container">
+            <h2>Contact Us</h2>
+            <p>Have questions or partnership ideas? Let’s build a better agri ecosystem together.</p>
+            <p><strong>Email:</strong> contact@agrilink.in</p>
+            <p><strong>Phone:</strong> +91 98765 43210</p>
+            <p><strong>Address:</strong> Agri Link HQ, Kochi, Kerala, India</p>
+            <div class="socials">
+                <a href="#">🌐 Website</a>
+                <a href="#">💼 LinkedIn</a>
+                <a href="#">📷 Instagram</a>
+            </div>
+            <p class="copyright">© 2025 Agri Link. All Rights Reserved.</p>
+        </div>
+    </footer>
 </body>
 </html>
